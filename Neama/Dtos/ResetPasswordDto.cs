@@ -17,9 +17,9 @@ namespace Neama.Dtos
         [Required]
         [EmailOrPhone(ErrorMessage = "Please provide a valid email address or phone number.")]
         public string EmailOrPhone { get; set; }
-        [Required(ErrorMessage ="password is Required")]
+        [Required(ErrorMessage = "password is Required")]
         public string NewPassword { get; set; }
-        [Compare("NewPassword",ErrorMessage ="The password do not match .")]
+        [Compare("NewPassword", ErrorMessage = "The password do not match .")]
         public string ConfirmPassword { get; set; }
 
     }

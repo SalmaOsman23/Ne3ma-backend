@@ -1,23 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
-using Neama.Core.Entities.Identity;
-using Neama.Errors;
+using Neama.Core.Repositories;
 using Neama.Extensions;
 using Neama.Middlewares;
+using Neama.Repository.domain;
 using Neama.Repository.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Neama
 {
@@ -36,25 +27,30 @@ namespace Neama
 
             services.AddControllers();
 
-            
+
 
             services.AddDbContext<AppIdentityDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("NeamaIdentityConnection"));
             });
+
             services.AddIdentityServices();
+
             services.AddApplicationServices();
             services.AddSwaggerService();
 
+            services.AddScoped<ISupplierRepository, SupplierRepository>();
+            services.AddScoped<ISurpriseBagRepository, SurpriseBagRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
 
-            ////////////////
-//            services.AddIdentity<AppUser, IdentityRole>(options =>
-//            {
-//                options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
-//            })
-//.AddDefaultTokenProviders()
-//.AddEntityFrameworkStores<AppIdentityDbContext>();
-            ///////////////
+
+            services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                {
+                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200");
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,6 +74,8 @@ namespace Neama
             {
                 endpoints.MapControllers();
             });
+
+            app.UseCors("CorsPolicy");
         }
     }
 }
