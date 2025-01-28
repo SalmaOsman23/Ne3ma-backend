@@ -10,7 +10,7 @@
             {
                 var addr = new System.Net.Mail.MailAddress(input);
                 return addr.Address == input;
-            }   
+            }
             catch
             {
                 return false;
@@ -22,4 +22,4 @@
             return System.Text.RegularExpressions.Regex.IsMatch(input, @"^\+?[0-9]\d{1,14}$");
         }
     }
-    }
+}

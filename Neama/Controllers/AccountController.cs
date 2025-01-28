@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Neama.Core.Entities.Identity;
@@ -19,9 +18,9 @@ namespace Neama.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService;
-        
 
-        
+
+
         public AccountController(UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ITokenService tokenService
@@ -30,7 +29,7 @@ namespace Neama.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
-            
+
         }
 
         [HttpPost("login")]//Post: /api//Account/login
@@ -76,7 +75,13 @@ namespace Neama.Controllers
                 UserName = registerDto.Email.Split("@")[0]
             };
             var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if (!result.Succeeded) return BadRequest(/*new ApiValidationErrorResponse() { Errors = new[] { "This Email Already In Use" } }*/);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            // Assign the role
+            await _userManager.AddToRoleAsync(user, registerDto.UserRole);
+
             return Ok(new UserDto()
             {
                 DisplayName = user.DisplayName,

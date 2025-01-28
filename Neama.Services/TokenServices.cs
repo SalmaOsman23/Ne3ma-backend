@@ -6,7 +6,6 @@ using Neama.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,20 +20,20 @@ namespace Neama.Services
             Configuration = configuration;
         }
 
-       
+
 
         public async Task<string> GetToken(AppUser user, UserManager<AppUser> userManager)
         {
             var authClaim = new List<Claim>()
-       {
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim(ClaimTypes.Name,user.DisplayName),
-
-       };
+            {
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name,user.DisplayName),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
 
 
             var userRoles = await userManager.GetRolesAsync(user);
-            foreach (var role in userRoles) 
+            foreach (var role in userRoles)
                 authClaim.Add(new Claim(ClaimTypes.Role, role));
 
             var authKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Key"]));
@@ -48,7 +47,7 @@ namespace Neama.Services
                 expires: DateTime.Now.AddDays(double.Parse(Configuration["JWT:DurationInDays"])),
                 //private claims
                 claims: authClaim,
-                signingCredentials: new SigningCredentials(authKey, SecurityAlgorithms.HmacSha256Signature)
+                signingCredentials: new SigningCredentials(authKey, SecurityAlgorithms.HmacSha256)
                 );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

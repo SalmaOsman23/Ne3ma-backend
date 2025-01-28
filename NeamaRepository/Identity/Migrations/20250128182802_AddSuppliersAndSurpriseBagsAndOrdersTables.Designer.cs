@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neama.Repository.Identity;
 
 namespace Neama.Repository.Identity.Migrations
 {
     [DbContext(typeof(AppIdentityDbContext))]
-    partial class AppIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250128182802_AddSuppliersAndSurpriseBagsAndOrdersTables")]
+    partial class AddSuppliersAndSurpriseBagsAndOrdersTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -274,11 +276,11 @@ namespace Neama.Repository.Identity.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("PickupEndTime")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<TimeSpan>("PickupEndTime")
+                        .HasColumnType("time");
 
-                    b.Property<string>("PickupStartTime")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<TimeSpan>("PickupStartTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
