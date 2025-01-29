@@ -1,0 +1,10 @@
+﻿global using FluentValidation;
+global using Mapster;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.Extensions.Options;
+global using Ne3ma.Abstractions;
+global using Neama.Entities;
+global using Neama.Persistence;
