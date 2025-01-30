@@ -1,0 +1,6 @@
+@Ne3maaa_HostAddress = http://localhost:5290
+
+GET {{Ne3maaa_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
