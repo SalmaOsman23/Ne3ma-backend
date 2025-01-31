@@ -1,8 +1,11 @@
 ﻿using FluentValidation.AspNetCore;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.IdentityModel.Tokens;
 using Ne3ma.Services;
+using Ne3ma.Settings;
 using Neama.Authentication;
 using Neama.Errors;
 using System.Reflection;
@@ -44,10 +47,14 @@ public static class DependencyInjection
             .AddFluentValidationConfig();
 
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IEmailSender, EmailService>();
+
 
 
         services.AddExceptionHandler<GloabalExceptionHandler>();
         services.AddProblemDetails();
+
+        services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
 
         services.AddHttpContextAccessor();
 

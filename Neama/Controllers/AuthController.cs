@@ -29,7 +29,7 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
             ? Ok(authResult.Value) : authResult.ToProblem();
     }
 
-    [HttpPost("revoke-refresh-token")]
+    [HttpPut("revoke-refresh-token")]
     public async Task<IActionResult> RevokeRefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
     {
         var result = await _authService.RevokeRefreshTokenAsync(request.Token, request.RefreshToken, cancellationToken);
@@ -42,6 +42,36 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
         var result = await _authService.RegisterAsync(request, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ComfirmEmail([FromBody] ConfirmEmailRequest request)
+    {
+        var result = await _authService.ConfirmEmailAsync(request);
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
+    [HttpPost("resend-confirm-email")]
+    public async Task<IActionResult> ResendConfirmaitonEmail([FromBody] ResendConfirmationEmailRequest request)
+    {
+        var result = await _authService.ResendConfirmationEmailAsync(request);
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
+    [HttpPost("forget-password")]
+    public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest request)
+    {
+        var result = await _authService.SendResetPasswordCodeAsync(request.Email);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var result = await _authService.ResetPasswordAsync(request);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
