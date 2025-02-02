@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.WebUtilities;
 using Ne3ma.Contracts.Authentication;
 using Ne3ma.Errors;
+using Ne3ma.Helper;
 using Neama.Authentication;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,12 +13,16 @@ public class AuthService(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     IJwtProvider jwtProvider,
-    ILogger<AuthService> logger) : IAuthService
+    ILogger<AuthService> logger,
+    IEmailSender emailSender,
+    IHttpContextAccessor httpContextAccessor) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
     private readonly ILogger<AuthService> _logger = logger;
+    private readonly IEmailSender _emailSender = emailSender;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
     private readonly int _refreshTokenExpiryDays = 14;
 
@@ -144,7 +150,8 @@ public class AuthService(
 
             _logger.LogInformation("confirmation code: {code}", code);
 
-            // Todo: send email confirmation
+            // send email confirmation
+            await SendConfirmationEmail(user, code);
 
             return Result.Success();
         }
@@ -154,9 +161,135 @@ public class AuthService(
         return Result.Failure<AuthResponse>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
 
     }
+
+    public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request)
+    {
+        if (await _userManager.FindByIdAsync(request.UserId) is not { } user)
+            return Result.Failure(UserErrors.InvalidCode);
+
+        if (user.EmailConfirmed)
+            return Result.Failure(UserErrors.DuplicatedConfirmation);
+
+        var code = request.Code;
+
+        try
+        {
+            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        }
+        catch (FormatException)
+        {
+            return Result.Failure(UserErrors.InvalidCode);
+        }
+
+        var result = await _userManager.ConfirmEmailAsync(user, code);
+
+        if (result.Succeeded)
+            return Result.Success();
+
+        var error = result.Errors.First();
+
+        return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+    }
+
+    public async Task<Result> ResendConfirmationEmailAsync([FromBody] ResendConfirmationEmailRequest request)
+    {
+        if (await _userManager.FindByEmailAsync(request.Email) is not { } user)
+            return Result.Success(); // distract user from knowing if the email exists
+
+        if (user.EmailConfirmed)
+            return Result.Failure(UserErrors.DuplicatedConfirmation);
+
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        _logger.LogInformation("Confirmation code: {code}", code);
+
+        // send email confirmation
+        await SendConfirmationEmail(user, code);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> SendResetPasswordCodeAsync(string email)
+    {
+        if (await _userManager.FindByEmailAsync(email) is not { } user)
+            return Result.Success();
+
+        if (!user.EmailConfirmed)
+            return Result.Failure(UserErrors.EmailNotConfirmed);
+
+        var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        _logger.LogInformation("Reset code: {code}", code);
+
+        // send email confirmation
+        await SendResetPasswordEmail(user, code);
+        return Result.Success();
+
+    }
+
+    public async Task<Result> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+
+        if (user is null || !user.EmailConfirmed)
+            return Result.Failure(UserErrors.InvalidCode);
+
+        IdentityResult result;
+
+        try
+        {
+            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Code));
+            result = await _userManager.ResetPasswordAsync(user, code, request.NewPassword);
+        }
+        catch (FormatException)
+        {
+            result = IdentityResult.Failed(_userManager.ErrorDescriber.InvalidToken());
+        }
+
+        if (result.Succeeded)
+            return Result.Success();
+
+        var error = result.Errors.First();
+
+        return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status401Unauthorized));
+    }
+
     private static string GenerateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    }
+
+    private async Task SendConfirmationEmail(ApplicationUser user, string code)
+    {
+        var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
+
+        var emailBody = EmailBodyBuilder.GenerateEmailBody("EmailConfirmation",
+            new Dictionary<string, string>
+            {
+                    {"{{name}}", user.FirstName }, // after origin/ frontend edit it(add his link) - -
+                    { "{{action_url}}", $"{origin}/auth/emailConfirmation?userId={user.Id}&code={code}" }
+            }
+        );
+
+        await _emailSender.SendEmailAsync(user.Email!, "✅ Ne3ma: Email Confirmation", emailBody);
+    }
+
+    private async Task SendResetPasswordEmail(ApplicationUser user, string code)
+    {
+        var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
+
+        var emailBody = EmailBodyBuilder.GenerateEmailBody("ForgetPassword",
+            new Dictionary<string, string>
+            {
+                    {"{{name}}", user.FirstName }, // after origin/ frontend edit it(add his link)
+                    { "{{action_url}}", $"{origin}/auth/forgetPassword?email={user.Email}&code={code}" }
+            }
+        );
+
+        await _emailSender.SendEmailAsync(user.Email!, "✅ Ne3ma: Change Password", emailBody);
+
     }
 
 }
