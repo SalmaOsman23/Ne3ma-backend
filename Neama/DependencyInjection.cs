@@ -38,8 +38,15 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection") ??
             throw new InvalidOperationException("Connection String 'DefaultConnection' not found.");
 
+        var serverConnection = configuration.GetConnectionString("ServerConnection") ??
+            throw new InvalidOperationException("Connection String 'ServerConnection' not found.");
+
         services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(connectionString));
+
+        
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(serverConnection));
 
         services
             .AddSwaggerServices()
