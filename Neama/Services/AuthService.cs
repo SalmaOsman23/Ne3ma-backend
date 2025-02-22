@@ -151,7 +151,7 @@ public class AuthService(
             _logger.LogInformation("confirmation code: {code}", code);
 
             // send email confirmation
-            await SendConfirmationEmail(user, code);
+            //await SendConfirmationEmail(user, code);
 
             return Result.Success();
         }

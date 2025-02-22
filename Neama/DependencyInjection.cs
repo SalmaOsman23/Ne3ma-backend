@@ -24,29 +24,36 @@ public static class DependencyInjection
 
         var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>();
 
+        //services.AddCors(options =>
+        //    options.AddDefaultPolicy(builder =>
+        //        builder
+        //            .AllowAnyMethod()
+        //            .AllowAnyHeader()
+        //            //.WithOrigins(allowedOrigins!)
+        //        )
+        //    );
         services.AddCors(options =>
-            options.AddDefaultPolicy(builder =>
-                builder
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .WithOrigins(allowedOrigins!)
-                )
-            );
+        options.AddDefaultPolicy(builder =>
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+    )
+);
 
         services.AddAuthConfig(configuration);
 
         var connectionString = configuration.GetConnectionString("DefaultConnection") ??
             throw new InvalidOperationException("Connection String 'DefaultConnection' not found.");
 
-        var serverConnection = configuration.GetConnectionString("ServerConnection") ??
-            throw new InvalidOperationException("Connection String 'ServerConnection' not found.");
+        //var serverConnection = configuration.GetConnectionString("ServerConnection") ??
+        //    throw new InvalidOperationException("Connection String 'ServerConnection' not found.");
 
         services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(connectionString));
 
-        
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(serverConnection));
+
+        //services.AddDbContext<ApplicationDbContext>(options =>
+        //    options.UseSqlServer(serverConnection));
 
         services
             .AddSwaggerServices()
