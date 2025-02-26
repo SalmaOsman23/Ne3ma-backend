@@ -1,13 +1,17 @@
-﻿using Ne3ma.Contracts.Authentication;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Ne3ma.Contracts.Authentication;
 using Ne3ma.Services;
 
 namespace Ne3ma.Controllers;
 [Route("[controller]")]
 [ApiController]
-public class AuthController(IAuthService authService, ILogger<AuthController> logger) : ControllerBase
+public class AuthController(IAuthService authService, ILogger<AuthController> logger, ApplicationDbContext context, UserManager<ApplicationUser> userManager) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
     private readonly ILogger<AuthController> _logger = logger;
+    private readonly ApplicationDbContext _context = context;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
 
     [HttpPost("")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
