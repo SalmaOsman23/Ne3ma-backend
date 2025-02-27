@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Ne3ma.Contracts.Authentication;
 using Ne3ma.Services;
+using Neama.Authentication;
 
 namespace Ne3ma.Controllers;
 [Route("[controller]")]
@@ -19,6 +20,30 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
         _logger.LogInformation("Logging with email: {email} and password: {password}", request.Email, request.Password);
 
         var authResult = await _authService.GetTokenAsync(request.Email, request.Password, cancellationToken);
+
+        //if (!authResult.IsSuccess)
+        //    return authResult.ToProblem();
+
+        //var token = authResult.Value!.Token;
+        //var refreshToken = authResult.Value.RefreshToken;
+
+        //// Store token in Cookies
+        //Response.Cookies.Append("AuthToken", token, new CookieOptions
+        //{
+        //    HttpOnly = true, // Security: Prevent JavaScript access
+        //    Secure = true, // Only allow over HTTPS
+        //    SameSite = SameSiteMode.Strict,
+        //    Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes)
+        //});
+
+        //Response.Cookies.Append("RefreshToken", refreshToken, new CookieOptions
+        //{
+        //    HttpOnly = true,
+        //    Secure = true,
+        //    SameSite = SameSiteMode.Strict,
+        //    Expires = DateTime.UtcNow.AddDays(14) // Refresh token expiration time
+        //});
+
 
         return authResult.IsSuccess
             ? Ok(authResult.Value) : authResult.ToProblem();

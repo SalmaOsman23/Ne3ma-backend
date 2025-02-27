@@ -3,13 +3,17 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Ne3ma.Services;
 using Ne3ma.Settings;
 using Neama.Authentication;
 using Neama.Errors;
 using System.Reflection;
 using System.Text;
+
+
 
 namespace Neama;
 
@@ -45,15 +49,11 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection") ??
             throw new InvalidOperationException("Connection String 'DefaultConnection' not found.");
 
-        //var serverConnection = configuration.GetConnectionString("ServerConnection") ??
-        //    throw new InvalidOperationException("Connection String 'ServerConnection' not found.");
-
         services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(connectionString));
+        options.UseSqlServer(
+        connectionString,
+        x => x.UseNetTopologySuite()));
 
-
-        //services.AddDbContext<ApplicationDbContext>(options =>
-        //    options.UseSqlServer(serverConnection));
 
         services
             .AddSwaggerServices()
@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IEmailSender, EmailService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IBusinessService, BusinessService>();
 
 
 
@@ -80,7 +81,33 @@ public static class DependencyInjection
     public static IServiceCollection AddSwaggerServices(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Ne3ma API", Version = "v1" });
+
+            //  Add JWT authentication support in Swagger
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter 'Bearer {your_token}' in the text box below. Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'"
+            });
+
+            // Ensure Swagger requires authentication
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                },
+                new List<string>()
+            }
+        });
+        });
 
         return services;
     }
@@ -140,7 +167,19 @@ public static class DependencyInjection
                     ValidIssuer = jwtSettings?.Issuer,
                     ValidAudience = jwtSettings?.Audience
                 };
+
+                //// Read token from cookies
+                //options.Events = new JwtBearerEvents
+                //{
+                //    OnMessageReceived = context =>
+                //    {
+                //        context.Token = context.Request.Cookies["jwt"];
+                //        return Task.CompletedTask;
+                //    }
+                //};
+                //// Read token from cookies
             });
+
 
         services.Configure<IdentityOptions>(options =>
         {
