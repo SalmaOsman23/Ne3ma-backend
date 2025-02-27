@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Ne3ma.Entities;
+using Ne3ma.Persistence.EntitiesConfigurations;
 using Neama.Extentions;
 using System.Reflection;
 
@@ -8,6 +10,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     : IdentityDbContext<IdentityUser>(options)
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
+
+    public DbSet<Business> Businesses { get; set; } = default!;
+    //public DbSet<FoodItem> FoodItems { get; set; } = default!;
+    //public DbSet<Order> Orders { get; set; } = default!;
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
