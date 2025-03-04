@@ -13,4 +13,7 @@ public static class BusinessErrors
 
     public static readonly Error ValidationFailed =
         new("Business.ValidationFailed", "Invalid business data provided.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error Forbidden =
+                new("Business.Forbidden", "You are not allowed to perform this action.", StatusCodes.Status403Forbidden);
 }

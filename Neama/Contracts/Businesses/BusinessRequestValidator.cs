@@ -18,8 +18,10 @@ public class BusinessRequestValidator : AbstractValidator<BusinessRequest>
         RuleFor(x => x.Longitude)
             .InclusiveBetween(-180, 180);
 
-        RuleFor(x => x.Phone)
-            .Matches(@"^\+?\d{10,15}$").WithMessage("Invalid phone number");
+            RuleFor(x => x.Phone)
+            .Matches(@"^(\+20|0)?1[0-9]{9}$")
+            .WithMessage("Invalid Egyptian phone number");
+
 
         RuleFor(x => x.Description)
             .NotEmpty()
