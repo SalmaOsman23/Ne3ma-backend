@@ -9,6 +9,7 @@ public class FoodItem
     public string ImageUrl { get; set; } = string.Empty;
     public int QuantityAvailable { get; set; }
     public DateTime ExpiryTime { get; set; }
+
     public Guid BusinessId { get; set; }
     public Business Business { get; set; } = null!;
     public ICollection<Order> Orders { get; set; } = [];

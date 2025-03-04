@@ -64,6 +64,7 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, EmailService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IBusinessService, BusinessService>();
+        services.AddScoped<IFoodItemService, FoodItemService>();
 
 
 

@@ -3,8 +3,8 @@
 public record BusinessRequest(
     string Name,
     string Address,
-    double Latitude,
     double Longitude,
+    double Latitude,
     string Phone,
     string Description
 );

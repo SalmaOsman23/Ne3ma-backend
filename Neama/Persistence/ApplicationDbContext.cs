@@ -13,7 +13,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
 
     public DbSet<Business> Businesses { get; set; } = default!;
-    //public DbSet<FoodItem> FoodItems { get; set; } = default!;
+    public DbSet<FoodItem> FoodItems { get; set; } = default!;
+
+
     //public DbSet<Order> Orders { get; set; } = default!;
 
 
@@ -28,6 +30,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         foreach (var fk in cascadeFKs)
             fk.DeleteBehavior = DeleteBehavior.Restrict;
+
+        modelBuilder.Entity<FoodItem>()
+            .ToTable("FoodItems");
 
         base.OnModelCreating(modelBuilder);
     }
