@@ -14,9 +14,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Business> Businesses { get; set; } = default!;
     public DbSet<FoodItem> FoodItems { get; set; } = default!;
+    public DbSet<Admin> Admins { get; set; } 
 
 
     //public DbSet<Order> Orders { get; set; } = default!;
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
